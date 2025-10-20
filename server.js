@@ -1,40 +1,42 @@
 const express = require('express');
 const cors = require('cors');
-const admin = require('firebase-admin');
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Firebase Admin SDK (FCM için)
-const serviceAccount = {
-  "type": "service_account",
-  "project_id": "vipgram",
-  "private_key": process.env.FIREBASE_PRIVATE_KEY,
-  "client_email": process.env.FIREBASE_CLIENT_EMAIL
-};
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
 let messages = [];
-let users = [];
 
-// ✅ MESAJ GÖNDER + FCM BİLDİRİM
-app.put('/messaging/private', async (req, res) => {
+// ✅ SADECE MESAJ KAYDET (FCM OLMADAN)
+app.put('/messaging/private', (req, res) => {
     const { title, body, token, topic } = req.body;
     
-    try {
-        // 1. Mesajı kaydet
-        const newMessage = {
-            id: Date.now(),
-            sender: token,
-            message: body,
-            timestamp: new Date(),
-            to: topic,
-            title: title
-        };
+    const newMessage = {
+        id: Date.now(),
+        sender: token,
+        message: body,
+        timestamp: new Date(),
+        to: topic
+    };
+    
+    messages.push(newMessage);
+    console.log('📨 Yeni mesaj:', body);
+
+    // FCM OLMADAN - sadece mesaj kaydet
+    res.json({ 
+        success: true, 
+        message: "Mesaj kaydedildi (bildirim yok)"
+    });
+});
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', message: 'Backend çalışıyor!' });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Backend ${PORT} portunda çalışıyor!`);
+});        };
         
         messages.push(newMessage);
         console.log('📨 Yeni mesaj:', body);
