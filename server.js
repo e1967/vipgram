@@ -1,40 +1,47 @@
 const express = require('express');
-const cors = require('cors');
 const app = express();
 
-app.use(cors());
 app.use(express.json());
 
 let messages = [];
 
-// ✅ SADECE MESAJ KAYDET (FCM OLMADAN)
+// ✅ MESAJ KAYDET
 app.put('/messaging/private', (req, res) => {
-    const { title, body, token, topic } = req.body;
+    console.log('📨 Gelen mesaj:', req.body);
     
-    const newMessage = {
+    messages.push({
         id: Date.now(),
-        sender: token,
-        message: body,
-        timestamp: new Date(),
-        to: topic
-    };
+        ...req.body,
+        timestamp: new Date()
+    });
     
-    messages.push(newMessage);
-    console.log('📨 Yeni mesaj:', body);
-
-    // FCM OLMADAN - sadece mesaj kaydet
     res.json({ 
         success: true, 
-        message: "Mesaj kaydedildi (bildirim yok)"
+        message: "Mesaj kaydedildi" 
     });
 });
 
+// ✅ MESAJLARI GETİR
+app.get('/messages', (req, res) => {
+    res.json({
+        success: true,
+        data: messages
+    });
+});
+
+// ✅ SAĞLIK KONTROLÜ
 app.get('/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Backend çalışıyor!' });
+    res.json({ 
+        status: 'OK', 
+        message: 'Backend çalışıyor!',
+        totalMessages: messages.length
+    });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
+    console.log(`🚀 Basit backend ${PORT} portunda çalışıyor!`);
+});app.listen(PORT, () => {
     console.log(`🚀 Backend ${PORT} portunda çalışıyor!`);
 });        };
         
